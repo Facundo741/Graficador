@@ -2,19 +2,36 @@ function validarEntrada(entrada) {
   return /^[a-zA-Z]$/.test(entrada);
 }
 
-function calcularBitParidad(valorAscii) {
-  return valorAscii % 2 === 0 ? '0' : '1';
+function validarEntrada() {
+  const entradaLetra = document.getElementById('entradaLetra').value.trim().toUpperCase();
+
+  if (!entradaLetra) {
+    alert('Por favor, introduzca un valor antes de codificar y mostrar.');
+    return;
+  }
+
+  if (!/^[a-zA-Z]$/.test(entradaLetra)) {
+    alert('Por favor, introduzca solo letras.');
+    document.getElementById('entradaLetra').value = ''; 
+    return;
+  }
 }
 
-function mostrarError(mensaje) {
-  console.error(mensaje);
+function calcularBitParidad(valorAscii) {
+  return valorAscii % 2 === 0 ? '0' : '1';
 }
 
 function codificarYMostrar() {
   const entradaLetra = document.getElementById('entradaLetra').value.trim().toUpperCase();
 
-  if (!validarEntrada(entradaLetra)) {
-    mostrarError('Por favor ingrese solo un carácter alfabético.');
+  if (!entradaLetra) {
+    alert('Por favor, introduzca un valor antes de codificar y mostrar.');
+    return;
+  }
+
+  if (!/^[a-zA-Z]$/.test(entradaLetra)) {
+    alert('Por favor, introduzca solo letras.');
+    document.getElementById('entradaLetra').value = '';
     return;
   }
 
@@ -68,19 +85,22 @@ function dibujarGraficos(valorAscii, codificaciones) {
   const trazas = Object.entries(codificaciones).map(([nombre, codificacion]) => ({
     x: valoresX,
     y: codificacion.split('').map(bit => (bit === '0' ? 0 : nombre === 'AMI' ? -1 : 1)),
+    text: codificacion.split(''),
     type: 'scatter',
     mode: 'lines+markers',
-    name: nombre
+    name: nombre,
+    line: { shape: 'hv' }  
   }));
 
   const diseño = {
-    xaxis: { range: [0, 7], title: 'Tiempo' },
-    yaxis: { range: [-1, 1], title: 'Amplitud' },
+    xaxis: { range: [-0.5, 7.5], title: 'Tiempo' },
+    yaxis: { range: [-1.5, 1.5], title: 'Amplitud' },
     title: 'Señales Digitales Codificadas'
   };
 
   Plotly.newPlot('miGrafico', trazas, diseño);
 }
+
 
 function mostrarSalida(valorAscii, bitParidad, codificaciones) {
   const salidaHTML = `
