@@ -1,136 +1,95 @@
-function validateInput(input) {
-  return /^[a-zA-Z]$/.test(input);
+function validarEntrada(entrada) {
+  return /^[a-zA-Z]$/.test(entrada);
 }
 
-function calculateParityBit(asciiValue) {
-  return asciiValue % 2 === 0 ? '0' : '1';
+function calcularBitParidad(valorAscii) {
+  return valorAscii % 2 === 0 ? '0' : '1';
 }
 
-function showError(message) {
-  console.error(message);
+function mostrarError(mensaje) {
+  console.error(mensaje);
 }
 
-function encodeAndDisplay() {
-  const inputLetter = document.getElementById('inputLetter').value.trim().toUpperCase();
+function codificarYMostrar() {
+  const entradaLetra = document.getElementById('entradaLetra').value.trim().toUpperCase();
 
-  if (!validateInput(inputLetter)) {
-    showError('Por favor ingrese solo un carácter alfabético.');
+  if (!validarEntrada(entradaLetra)) {
+    mostrarError('Por favor ingrese solo un carácter alfabético.');
     return;
   }
 
-  const asciiValue = inputLetter.charCodeAt(0);
-  const parityBit = calculateParityBit(asciiValue);
+  const valorAscii = entradaLetra.charCodeAt(0);
+  const bitParidad = calcularBitParidad(valorAscii);
 
-  const nrzEncoded = encodeNRZ(asciiValue);
-  const amiEncoded = encodeAMI(asciiValue);
-  const manchesterEncoded = encodeManchester(asciiValue);
-  const manchesterDiffEncoded = encodeManchesterDifferential(asciiValue);
+  const codificaciones = {
+    NRZ: codificarSeñal(valorAscii, '0'),
+    AMI: codificarAMI(valorAscii),
+    Manchester: codificarSeñal(valorAscii, '1'),
+    ManchesterDiferencial: codificarManchesterDiferencial(valorAscii)
+  };
 
-  displayOutput(asciiValue, parityBit, nrzEncoded, amiEncoded, manchesterEncoded, manchesterDiffEncoded);
-  drawGraphs(asciiValue, nrzEncoded, amiEncoded, manchesterEncoded, manchesterDiffEncoded);
+  mostrarSalida(valorAscii, bitParidad, codificaciones);
+  dibujarGraficos(valorAscii, codificaciones);
 }
 
-function encodeNRZ(asciiValue) {
-  const binaryValue = asciiValue.toString(2).padStart(8, '0');
-  return binaryValue.split('').map(bit => (bit === '0' ? '1' : '0')).join('');
+function codificarSeñal(valorAscii, invertir) {
+  const valorBinario = valorAscii.toString(2).padStart(8, '0');
+  return valorBinario.split('').map(bit => (bit === invertir ? '0' : '1')).join('');
 }
 
-function encodeAMI(asciiValue) {
-  const binaryValue = asciiValue.toString(2).padStart(8, '0');
-  let amiSignal = '';
-  let lastBit = '0';
+function codificarAMI(valorAscii) {
+  const valorBinario = valorAscii.toString(2).padStart(8, '0');
+  let señalAMI = '';
+  let últimoBit = '0';
 
-  for (const bit of binaryValue) {
-    if (bit === '0') {
-      amiSignal += '1';
-    } else {
-      amiSignal += lastBit === '0' ? '-1' : '1';
-      lastBit = lastBit === '0' ? '1' : '0';
-    }
+  for (const bit of valorBinario) {
+    señalAMI += bit === '0' ? '1' : (últimoBit = últimoBit === '0' ? '1' : '0');
   }
 
-  return amiSignal;
+  return señalAMI;
 }
 
-function encodeManchester(asciiValue) {
-  const binaryValue = asciiValue.toString(2).padStart(8, '0');
-  return binaryValue.split('').map(bit => (bit === '0' ? '1' : '0')).join('');
-}
+function codificarManchesterDiferencial(valorAscii) {
+  const valorBinario = valorAscii.toString(2).padStart(8, '0');
+  let señalManchesterDiff = '';
+  let últimoBit = '0';
 
-function encodeManchesterDifferential(asciiValue) {
-  const binaryValue = asciiValue.toString(2).padStart(8, '0');
-  let manchesterDiffSignal = '';
-  let lastBit = '0';
-
-  for (const bit of binaryValue) {
-    manchesterDiffSignal += lastBit === bit ? '0' : '1';
-    lastBit = bit;
+  for (const bit of valorBinario) {
+    señalManchesterDiff += últimoBit === bit ? '0' : '1';
+    últimoBit = bit;
   }
 
-  return manchesterDiffSignal;
+  return señalManchesterDiff;
 }
 
-function drawGraphs(asciiValue, nrzEncoded, amiEncoded, manchesterEncoded, manchesterDiffEncoded) {
-  const xValues = Array.from({ length: nrzEncoded.length }, (_, i) => i);
+function dibujarGraficos(valorAscii, codificaciones) {
+  const valoresX = Array.from({ length: 8 }, (_, i) => i);
 
-  const traceNRZ = {
-    x: xValues,
-    y: nrzEncoded.split('').map(bit => (bit === '0' ? 0 : 1)),
+  const trazas = Object.entries(codificaciones).map(([nombre, codificacion]) => ({
+    x: valoresX,
+    y: codificacion.split('').map(bit => (bit === '0' ? 0 : nombre === 'AMI' ? -1 : 1)),
     type: 'scatter',
     mode: 'lines+markers',
-    name: 'NRZ'
+    name: nombre
+  }));
+
+  const diseño = {
+    xaxis: { range: [0, 7], title: 'Tiempo' },
+    yaxis: { range: [-1, 1], title: 'Amplitud' },
+    title: 'Señales Digitales Codificadas'
   };
 
-  const traceAMI = {
-    x: xValues,
-    y: amiEncoded.split('').map(bit => (bit === '0' ? 0 : -1)),
-    type: 'scatter',
-    mode: 'lines+markers',
-    name: 'AMI'
-  };
-
-  const traceManchester = {
-    x: xValues,
-    y: manchesterEncoded.split('').map(bit => (bit === '0' ? 0 : 1)),
-    type: 'scatter',
-    mode: 'lines+markers',
-    name: 'Manchester'
-  };
-
-  const traceManchesterDiff = {
-    x: xValues,
-    y: manchesterDiffEncoded.split('').map(bit => (bit === '0' ? 0 : -1)),
-    type: 'scatter',
-    mode: 'lines+markers',
-    name: 'Manchester Diferencial'
-  };
-
-  const layout = {
-    xaxis: {
-      range: [0, 10],
-      title: 'Tiempo'
-    },
-    yaxis: {
-      range: [-1, 1],
-      title: 'Amplitud'
-    },
-    title: 'Señales Digitales Codificadas',
-  };
-
-  const data = [traceNRZ, traceAMI, traceManchester, traceManchesterDiff];
-
-  Plotly.newPlot('myChart', data, layout);
+  Plotly.newPlot('miGrafico', trazas, diseño);
 }
 
-function displayOutput(asciiValue, parityBit, nrzEncoded, amiEncoded, manchesterEncoded, manchesterDiffEncoded) {
-  const outputHTML = `
-    <p>ASCII: ${asciiValue}</p>
-    <p>Bit de Paridad: ${parityBit}</p>
-    <p>NRZ: ${nrzEncoded}</p>
-    <p>AMI: ${amiEncoded}</p>
-    <p>Manchester: ${manchesterEncoded}</p>
-    <p>Manchester Diferencial: ${manchesterDiffEncoded}</p>
+function mostrarSalida(valorAscii, bitParidad, codificaciones) {
+  const salidaHTML = `
+    <p>ASCII: ${valorAscii}</p>
+    <p>Bit de Paridad: ${bitParidad}</p>
+    ${Object.entries(codificaciones)
+      .map(([nombre, codificacion]) => `<p>${nombre}: ${codificacion}</p>`)
+      .join('')}
   `;
 
-  document.getElementById('output').innerHTML = outputHTML;
+  document.getElementById('salida').innerHTML = salidaHTML;
 }
