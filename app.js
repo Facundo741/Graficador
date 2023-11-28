@@ -46,7 +46,10 @@ function codificarYMostrar() {
   };
 
   mostrarSalida(valorAscii, bitParidad, codificaciones);
-  dibujarGraficos(valorAscii, codificaciones);
+  dibujarGrafico('NRZ', 'nrzGrafico', codificaciones.NRZ);
+  dibujarGrafico('AMI', 'amiGrafico', codificaciones.AMI);
+  dibujarGrafico('Manchester', 'manchesterGrafico', codificaciones.Manchester);
+  dibujarGrafico('ManchesterDiferencial', 'manchesterDiferencialGrafico', codificaciones.ManchesterDiferencial);
 }
 
 function codificarSeñal(valorAscii, invertir) {
@@ -79,28 +82,27 @@ function codificarManchesterDiferencial(valorAscii) {
   return señalManchesterDiff;
 }
 
-function dibujarGraficos(valorAscii, codificaciones) {
+function dibujarGrafico(nombre, contenedor, codificacion) {
   const valoresX = Array.from({ length: 8 }, (_, i) => i);
 
-  const trazas = Object.entries(codificaciones).map(([nombre, codificacion]) => ({
+  const traza = {
     x: valoresX,
     y: codificacion.split('').map(bit => (bit === '0' ? 0 : nombre === 'AMI' ? -1 : 1)),
     text: codificacion.split(''),
     type: 'scatter',
     mode: 'lines+markers',
     name: nombre,
-    line: { shape: 'hv' }  
-  }));
+    line: { shape: 'hv' }
+  };
 
   const diseño = {
     xaxis: { range: [-0.5, 7.5], title: 'Tiempo' },
     yaxis: { range: [-1.5, 1.5], title: 'Amplitud' },
-    title: 'Señales Digitales Codificadas'
+    title: `Señal Digital Codificada - ${nombre}`
   };
 
-  Plotly.newPlot('miGrafico', trazas, diseño);
+  Plotly.newPlot(contenedor, [traza], diseño);
 }
-
 
 function mostrarSalida(valorAscii, bitParidad, codificaciones) {
   const salidaHTML = `
