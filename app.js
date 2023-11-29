@@ -98,24 +98,33 @@ function dibujarGrafico(nombre, contenedor, codificacion, bitParidad) {
   if (nombre === 'Manchester' || nombre === 'ManchesterDiferencial') {
     for (let i = 0; i < valoresX.length; i++) {
       traza.x.push(i, i + 1);
-      traza.y.push(codificacion[i] === '0' ? 0 : (i % 2 === 0 ? -1 : 1));
-      traza.y.push(codificacion[i] === '0' ? 0 : (i % 2 === 0 ? -1 : 1));
+      traza.y.push(codificacion[i] === '0' ? 0 : (i % 2 === 0 ? 1 : -1));
+      traza.y.push(codificacion[i] === '0' ? 0 : (i % 2 === 0 ? 1 : -1));
       traza.text.push(codificacion[i], codificacion[i]);
     }
+
+    const diseño = {
+      xaxis: { range: [-0.5, 8.5], title: 'Tiempo' },
+      yaxis: { range: [-1.5, 1.5], title: 'Amplitud' },
+      title: `Señal Digital Codificada - ${nombre}`
+    };
+
+    Plotly.newPlot(contenedor, [traza], diseño);
   } else {
     traza.x = [...valoresX, valoresX[valoresX.length - 1] + 1];
     traza.y = [...codificacion.split('').map(bit => (bit === '0' ? 0 : nombre === 'AMI' ? -1 : 1)), bitParidad === '0' ? 0 : 1];
     traza.text = [...codificacion.split(''), bitParidad];
+
+    const diseño = {
+      xaxis: { range: [-0.5, 8.5], title: 'Tiempo' },
+      yaxis: { range: [-1.5, 1.5], title: 'Amplitud' },
+      title: `Señal Digital Codificada - ${nombre}`
+    };
+
+    Plotly.newPlot(contenedor, [traza], diseño);
   }
-
-  const diseño = {
-    xaxis: { range: [-0.5, 8.5], title: 'Tiempo' },
-    yaxis: { range: [-1.5, 1.5], title: 'Amplitud' },
-    title: `Señal Digital Codificada - ${nombre}`
-  };
-
-  Plotly.newPlot(contenedor, [traza], diseño);
 }
+
 
 
 
